@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="explorer.css">
+  <title>Tab Trail Explorer</title>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div class="header-content">
+        <h1>🌲 Tab Relationship Map</h1>
+        <p class="description">Shows how tabs are connected to each other</p>
+        <div class="controls">
+          <button id="layout-tree" class="layout-btn active" title="Tree Layout">🌳</button>
+          <button id="layout-radial" class="layout-btn" title="Radial Layout">☀️</button>
+          <button id="layout-timeline" class="layout-btn" title="Timeline View">📅</button>
+          <span class="separator">|</span>
+          <button id="filter-active" class="filter-btn active" title="Show Active Tabs">🟢</button>
+          <button id="filter-closed" class="filter-btn active" title="Show Closed Tabs">⚫</button>
+          <span class="separator">|</span>
+          <button id="toggle-labels" class="filter-btn" title="Show/Hide Labels">🏷️</button>
+          <span class="separator">|</span>
+          <input type="search" id="search-box" placeholder="Search tabs...">
+          <button id="reset-view" title="Reset View">🔄</button>
+        </div>
+      </div>
+    </header>
+    
+    <main>
+      <div id="visualization">
+        <div id="loading">Loading your tab relationships...</div>
+      </div>
+      
+      <aside id="details-panel" class="hidden">
+        <button id="close-details" class="close-btn">×</button>
+        <div id="details-content">
+          <!-- Tab details will be shown here -->
+        </div>
+      </aside>
+    </main>
+    
+    <footer>
+      <div class="stats">
+        <span id="tab-count">0 tabs</span>
+        <span class="separator">•</span>
+        <span id="domain-count">0 domains</span>
+        <span class="separator">•</span>
+        <span id="time-range">Today</span>
+      </div>
+      <div class="actions">
+        <button id="export-svg">Export as Image</button>
+        <button id="close-explorer">Close</button>
+      </div>
+    </footer>
+  </div>
+  
+  <script src="../lib/d3/d3.v7.min.js"></script>
+  <script src="explorer.js"></script>
+</body>
+</html>

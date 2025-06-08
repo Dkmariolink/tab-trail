@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css">
+  <title>Tab Trail</title>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>🌳 Tab Trail</h1>
+      <p class="tagline">Follow your browsing trail</p>
+    </header>
+    
+    <main>
+      <section id="current-trail">
+        <h2>How did I get here?</h2>
+        <div id="trail-display">
+          <p class="loading">Loading your trail...</p>
+        </div>
+      </section>
+      
+      <section id="actions">
+        <button id="view-full-trail">View Tab Relationships</button>
+        <div class="export-buttons">
+          <button id="copy-trail" class="export-btn" title="Copy trail as text">📋 Copy</button>
+          <button id="export-json" class="export-btn" title="Download as JSON">💾 JSON</button>
+          <button id="export-markdown" class="export-btn" title="Copy as Markdown">📝 MD</button>
+        </div>
+      </section>
+    </main>
+    
+    <footer>
+      <p>v1.0.0 - <a href="#" id="settings-link">Settings</a> - <a href="#" id="donate-link">Support ☕</a></p>
+    </footer>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

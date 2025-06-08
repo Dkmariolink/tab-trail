@@ -1,0 +1,295 @@
+/* Tab Trail Popup Styles */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 320px;
+  min-height: 400px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #333;
+  background: #f5f5f5;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+header {
+  background: #2c3e50;
+  color: white;
+  padding: 15px;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.tagline {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+main {
+  flex: 1;
+  padding: 20px;
+}
+
+#current-trail {
+  margin-bottom: 20px;
+}
+
+#current-trail h2 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+
+#trail-display {
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  min-height: 100px;
+}
+
+.loading {
+  color: #666;
+  font-style: italic;
+  text-align: center;
+}
+
+#actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+button {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+  width: 100%;
+  font-weight: 500;
+}
+
+button:hover {
+  background: #2980b9;
+}
+
+.export-buttons {
+  display: none;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.export-btn {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 12px;
+  background: #34495e;
+}
+
+.export-btn:hover {
+  background: #2c3e50;
+}
+
+.export-success {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #27ae60;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.export-success.show {
+  opacity: 1;
+}
+
+footer {
+  background: #ecf0f1;
+  padding: 10px;
+  text-align: center;
+  font-size: 12px;
+  border-top: 1px solid #ddd;
+}
+
+footer a {
+  color: #3498db;
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+/* Trail display styles */
+.trail {
+  margin: 10px 0;
+}
+
+.trail-step {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.trail-step:hover {
+  background: #f0f0f0;
+}
+
+.trail-step.current {
+  background: #e3f2fd;
+  border: 1px solid #2196f3;
+}
+
+.trail-step.history {
+  opacity: 0.7;
+  font-size: 12px;
+}
+
+.trail-step.parent {
+  background: #f5f5f5;
+  border-left: 3px solid #999;
+}
+
+.trail-step.clickable {
+  cursor: pointer;
+}
+
+.trail-step.clickable:hover {
+  background: #e8f5e9;
+  transform: translateX(2px);
+}
+
+.step-number {
+  background: #666;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.trail-step.current .step-number {
+  background: #2196f3;
+}
+
+.step-icon {
+  font-size: 16px;
+  margin-right: 8px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.favicon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.step-info {
+  flex: 1;
+  min-width: 0; /* Enable text truncation */
+}
+
+.step-title {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.step-domain {
+  font-size: 11px;
+  color: #666;
+  margin-top: 2px;
+}
+
+.step-time {
+  font-size: 10px;
+  color: #999;
+  margin-top: 2px;
+  font-style: italic;
+}
+
+.trail-connector {
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  line-height: 1;
+  margin: 2px 0;
+}
+
+.trail-summary {
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+/* Empty state styles */
+.empty-state {
+  text-align: center;
+  padding: 20px;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.empty-message {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.empty-tip {
+  font-size: 11px;
+  color: #888;
+  background: #f5f5f5;
+  padding: 10px;
+  border-radius: 6px;
+  line-height: 1.4;
+}

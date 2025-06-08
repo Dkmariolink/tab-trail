@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "Tab Trail",
+  "version": "1.0.0",
+  "description": "Follow your browsing trail - track and visualize how you navigate between tabs",
+  
+  "permissions": [
+    "tabs",
+    "storage",
+    "webNavigation",
+    "alarms"
+  ],
+  
+  "host_permissions": [
+    "https://www.google.com/s2/favicons*"
+  ],
+  
+  "background": {
+    "service_worker": "service-worker.js",
+    "type": "module"
+  },
+  
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Tab Trail - Click to see your trail"
+  },
+  
+  "options_page": "settings/settings.html",
+  
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+T"
+      },
+      "description": "Open Tab Trail popup"
+    }
+  },
+  
+  "icons": {
+    "16": "assets/icons/icon-16.png",
+    "48": "assets/icons/icon-48.png",
+    "128": "assets/icons/icon-128.png"
+  }
+}

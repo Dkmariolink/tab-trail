@@ -1,0 +1,42 @@
+# Node modules (if you add any later)
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build files
+*.zip
+dist/
+
+# Chrome extension development
+*.pem
+*.crx
+
+# D3.js library (users should download it themselves)
+extension/lib/d3/d3.v7.min.js
+
+# Temporary files
+*.tmp
+*.temp
+
+# Log files
+*.log
+
+# Private/sensitive files
+.env
+config.json
+
+# Development notes (keep private)
+memory-bank/
+*.md
+!README.md
+!CONTRIBUTING.md
+!LICENSE
+
