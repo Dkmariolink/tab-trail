@@ -75,6 +75,8 @@ No build process required! The extension runs directly from source.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+See full contributing guide [HERE](CONTRIBUTING)
+
 ## 🔐 Privacy Policy
 
 Tab Trail is committed to your privacy:
@@ -82,6 +84,8 @@ Tab Trail is committed to your privacy:
 - **Local storage only** - All data stays on your device
 - **No analytics** - No tracking or telemetry
 - **Open source** - Verify our privacy claims in the code
+
+Full privacy policy [HERE](PRIVACY)
 
 ## 📝 License
 
