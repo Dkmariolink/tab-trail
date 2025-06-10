@@ -1076,33 +1076,33 @@ function setLayout(layout) {
   }, 800);
 }
 
-// Export as PNG image with proper styling
+// Export as PNG image using canvas rendering
 function exportSVG() {
-  const svgElement = svg.node();
-  const svgData = new XMLSerializer().serializeToString(svgElement);
-  
-  // Create a canvas for PNG conversion
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  
-  // Set canvas size to match SVG
-  const bbox = svgElement.getBoundingClientRect();
-  canvas.width = bbox.width || 1200;
-  canvas.height = bbox.height || 800;
-  
-  // Dark background for professional look
-  ctx.fillStyle = '#1a1a1a';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  // Create image from SVG with embedded styles
-  const img = new Image();
-  const svgWithStyles = addSVGStyles(svgData);
-  const svgBlob = new Blob([svgWithStyles], { type: 'image/svg+xml;charset=utf-8' });
-  const svgUrl = URL.createObjectURL(svgBlob);
-  
-  img.onload = function() {
-    // Draw SVG onto canvas
-    ctx.drawImage(img, 0, 0);
+  try {
+    // Create canvas with proper dimensions
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set high resolution for quality
+    const scale = 2; // 2x for retina quality
+    canvas.width = 1200 * scale;
+    canvas.height = 800 * scale;
+    ctx.scale(scale, scale);
+    
+    // Dark background
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, 0, 1200, 800);
+    
+    // Get SVG bounds for centering
+    const svgElement = svg.node();
+    const svgBounds = svgElement.getBBox();
+    const centerX = 600;
+    const centerY = 400;
+    const offsetX = centerX - svgBounds.width / 2;
+    const offsetY = centerY - svgBounds.height / 2;
+    
+    // Render nodes and links manually to canvas
+    renderToCanvas(ctx, offsetX, offsetY);
     
     // Convert to PNG and download
     canvas.toBlob(function(blob) {
@@ -1113,71 +1113,141 @@ function exportSVG() {
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
-      
-      // Cleanup
       URL.revokeObjectURL(url);
-      URL.revokeObjectURL(svgUrl);
     }, 'image/png');
-  };
-  
-  img.onerror = function() {
-    console.warn('PNG conversion failed, falling back to SVG export');
-    // Fallback to SVG if PNG conversion fails
-    const downloadLink = document.createElement('a');
-    downloadLink.href = svgUrl;
-    downloadLink.download = `tab-trail-${Date.now()}.svg`;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-    URL.revokeObjectURL(svgUrl);
-  };
-  
-  img.src = svgUrl;
+    
+  } catch (error) {
+    console.warn('PNG export failed, falling back to SVG:', error);
+    exportAsSVG();
+  }
 }
 
-// Add CSS styles directly to SVG for proper rendering
+// Render visualization elements to canvas
+function renderToCanvas(ctx, offsetX, offsetY) {
+  // Render links first (so they appear behind nodes)
+  if (links && links.data) {
+    links.data().forEach(link => {
+      if (link.source && link.target && link.source.x !== undefined && link.target.x !== undefined) {
+        ctx.beginPath();
+        ctx.moveTo(link.source.x + offsetX, link.source.y + offsetY);
+        ctx.lineTo(link.target.x + offsetX, link.target.y + offsetY);
+        ctx.strokeStyle = '#4dabf7';
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.8;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+    });
+  }
+  
+  // Render nodes
+  if (nodes && nodes.data) {
+    nodes.data().forEach(node => {
+      if (node.x !== undefined && node.y !== undefined) {
+        const x = node.x + offsetX;
+        const y = node.y + offsetY;
+        const radius = 20;
+        
+        // Determine node color based on type
+        let fillColor = '#4dabf7'; // default blue
+        if (node.current) fillColor = '#ffd700'; // yellow for current
+        else if (node.isRoot) fillColor = '#51cf66'; // green for root
+        
+        // Draw circle
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Draw text label if it exists and labels are shown
+        if (showLabels && node.title) {
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          
+          // Truncate long titles
+          let title = node.title;
+          if (title.length > 15) {
+            title = title.substring(0, 12) + '...';
+          }
+          
+          ctx.fillText(title, x, y + radius + 15);
+        }
+      }
+    });
+  }
+}
+
+// Fallback SVG export with enhanced styling
+function exportAsSVG() {
+  const svgElement = svg.node();
+  const svgData = new XMLSerializer().serializeToString(svgElement);
+  const enhancedSVG = addSVGStyles(svgData);
+  
+  const svgBlob = new Blob([enhancedSVG], { type: 'image/svg+xml;charset=utf-8' });
+  const svgUrl = URL.createObjectURL(svgBlob);
+  
+  const downloadLink = document.createElement('a');
+  downloadLink.href = svgUrl;
+  downloadLink.download = `tab-trail-${Date.now()}.svg`;
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+  URL.revokeObjectURL(svgUrl);
+}
+
+// Add comprehensive styles to SVG
 function addSVGStyles(svgData) {
   const styles = `
-    <style type="text/css">
-      <![CDATA[
-        .node circle {
-          fill: #4dabf7;
-          stroke: #ffffff;
-          stroke-width: 2px;
-        }
-        .node.current circle {
-          fill: #ffd700;
-          stroke: #ffffff;
-          stroke-width: 3px;
-        }
-        .node.root circle {
-          fill: #51cf66;
-          stroke: #ffffff;
-          stroke-width: 2px;
-        }
-        .node text {
-          fill: #ffffff;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          font-size: 12px;
-          text-anchor: middle;
-          dominant-baseline: central;
-          pointer-events: none;
-        }
-        .link {
-          stroke: #4dabf7;
-          stroke-width: 2px;
-          stroke-opacity: 0.8;
-          fill: none;
-        }
-        .link.highlighted {
-          stroke: #ffd700;
-          stroke-width: 3px;
-          stroke-opacity: 1;
-        }
-      ]]>
-    </style>
+    <defs>
+      <style type="text/css">
+        <![CDATA[
+          svg { background-color: #1a1a1a; }
+          .node circle {
+            fill: #4dabf7;
+            stroke: #ffffff;
+            stroke-width: 2px;
+          }
+          .node.current circle {
+            fill: #ffd700;
+            stroke: #ffffff;
+            stroke-width: 3px;
+          }
+          .node.root circle {
+            fill: #51cf66;
+            stroke: #ffffff;
+            stroke-width: 2px;
+          }
+          .node text {
+            fill: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 12px;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+          }
+          .link {
+            stroke: #4dabf7;
+            stroke-width: 2px;
+            stroke-opacity: 0.8;
+            fill: none;
+          }
+          .link.highlighted {
+            stroke: #ffd700;
+            stroke-width: 3px;
+            stroke-opacity: 1;
+          }
+        ]]>
+      </style>
+    </defs>
   `;
   
-  // Insert styles after the opening SVG tag
-  return svgData.replace('<svg', styles + '<svg');
+  // Insert styles after opening SVG tag and add dark background
+  return svgData
+    .replace('<svg', `<svg style="background-color: #1a1a1a;"`)
+    .replace('>', '>' + styles);
 }
