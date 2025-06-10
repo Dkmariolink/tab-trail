@@ -1076,16 +1076,108 @@ function setLayout(layout) {
   }, 800);
 }
 
-// Export SVG as image
+// Export as PNG image with proper styling
 function exportSVG() {
-  const svgData = new XMLSerializer().serializeToString(svg.node());
-  const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+  const svgElement = svg.node();
+  const svgData = new XMLSerializer().serializeToString(svgElement);
+  
+  // Create a canvas for PNG conversion
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  // Set canvas size to match SVG
+  const bbox = svgElement.getBoundingClientRect();
+  canvas.width = bbox.width || 1200;
+  canvas.height = bbox.height || 800;
+  
+  // Dark background for professional look
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Create image from SVG with embedded styles
+  const img = new Image();
+  const svgWithStyles = addSVGStyles(svgData);
+  const svgBlob = new Blob([svgWithStyles], { type: 'image/svg+xml;charset=utf-8' });
   const svgUrl = URL.createObjectURL(svgBlob);
   
-  const downloadLink = document.createElement('a');
-  downloadLink.href = svgUrl;
-  downloadLink.download = `tab-trail-${Date.now()}.svg`;
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
+  img.onload = function() {
+    // Draw SVG onto canvas
+    ctx.drawImage(img, 0, 0);
+    
+    // Convert to PNG and download
+    canvas.toBlob(function(blob) {
+      const url = URL.createObjectURL(blob);
+      const downloadLink = document.createElement('a');
+      downloadLink.href = url;
+      downloadLink.download = `tab-trail-${Date.now()}.png`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      // Cleanup
+      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(svgUrl);
+    }, 'image/png');
+  };
+  
+  img.onerror = function() {
+    console.warn('PNG conversion failed, falling back to SVG export');
+    // Fallback to SVG if PNG conversion fails
+    const downloadLink = document.createElement('a');
+    downloadLink.href = svgUrl;
+    downloadLink.download = `tab-trail-${Date.now()}.svg`;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    URL.revokeObjectURL(svgUrl);
+  };
+  
+  img.src = svgUrl;
+}
+
+// Add CSS styles directly to SVG for proper rendering
+function addSVGStyles(svgData) {
+  const styles = `
+    <style type="text/css">
+      <![CDATA[
+        .node circle {
+          fill: #4dabf7;
+          stroke: #ffffff;
+          stroke-width: 2px;
+        }
+        .node.current circle {
+          fill: #ffd700;
+          stroke: #ffffff;
+          stroke-width: 3px;
+        }
+        .node.root circle {
+          fill: #51cf66;
+          stroke: #ffffff;
+          stroke-width: 2px;
+        }
+        .node text {
+          fill: #ffffff;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          font-size: 12px;
+          text-anchor: middle;
+          dominant-baseline: central;
+          pointer-events: none;
+        }
+        .link {
+          stroke: #4dabf7;
+          stroke-width: 2px;
+          stroke-opacity: 0.8;
+          fill: none;
+        }
+        .link.highlighted {
+          stroke: #ffd700;
+          stroke-width: 3px;
+          stroke-opacity: 1;
+        }
+      ]]>
+    </style>
+  `;
+  
+  // Insert styles after the opening SVG tag
+  return svgData.replace('<svg', styles + '<svg');
 }
