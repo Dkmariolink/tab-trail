@@ -35,10 +35,10 @@ config.json
 
 # Development notes (keep private)
 memory-bank/
+MARKETING.md
 *.md
 !README.md
 !CONTRIBUTING.md
 !PRIVACY.md
-!MARKETING.md
 !LICENSE
 
