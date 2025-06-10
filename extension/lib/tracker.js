@@ -10,9 +10,46 @@ class TabTracker {
     this.PENDING_TIMEOUT = 3000; // 3 seconds to match navigation to tab
   }
 
+  // Check if a URL should be tracked (exclude downloads, exports, and system URLs)
+  shouldTrackUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    
+    // Skip blob URLs (downloads, exports)
+    if (url.startsWith('blob:')) return false;
+    
+    // Skip data URLs
+    if (url.startsWith('data:')) return false;
+    
+    // Skip chrome extension URLs
+    if (url.includes('chrome-extension://')) return false;
+    
+    // Skip chrome system URLs
+    if (url.startsWith('chrome://')) return false;
+    
+    // Skip about: URLs
+    if (url.startsWith('about:')) return false;
+    
+    // Skip moz-extension (Firefox)
+    if (url.startsWith('moz-extension://')) return false;
+    
+    // Skip file URLs (local files)
+    if (url.startsWith('file://')) return false;
+    
+    // Skip edge extension URLs
+    if (url.startsWith('ms-browser-extension://')) return false;
+    
+    return true;
+  }
+
   // Handle new tab creation
   async handleTabCreated(tab) {
     console.log('TabTracker: Tab created', tab.id, 'openerTabId:', tab.openerTabId, 'url:', tab.url);
+    
+    // Don't track non-web URLs (exports, downloads, system pages)
+    if (!this.shouldTrackUrl(tab.url)) {
+      console.log('TabTracker: Skipping non-trackable URL:', tab.url);
+      return null;
+    }
     
     // Check if this tab already exists (to avoid duplicates during navigation)
     const existingTab = await storage.getTab(tab.id);
@@ -36,15 +73,12 @@ class TabTracker {
 
     // Only set parent relationship if opener is a real web page
     if (tab.openerTabId && tab.openerTabId > 0) {
-      // Check if the opener is a web page (not extension or chrome page)
+      // Check if the opener is a trackable web page
       try {
         const openerTab = await chrome.tabs.get(tab.openerTabId);
-        const isWebPage = openerTab.url && 
-                         !openerTab.url.includes('chrome-extension://') && 
-                         !openerTab.url.includes('chrome://') &&
-                         openerTab.url !== 'chrome://newtab/';
+        const isTrackableWebPage = this.shouldTrackUrl(openerTab.url);
         
-        if (isWebPage) {
+        if (isTrackableWebPage) {
           tabNode.parentId = String(tab.openerTabId);
           tabNode.source = { type: 'link', method: 'openerTabId' };
           console.log('TabTracker: Found web page parent via openerTabId', tab.openerTabId, '(', openerTab.url, ')');
@@ -69,7 +103,7 @@ class TabTracker {
             console.log('TabTracker: Backfilled missing parent tab:', openerTab.title);
           }
         } else {
-          console.log('TabTracker: Ignoring non-web opener:', openerTab.url);
+          console.log('TabTracker: Ignoring non-trackable opener:', openerTab.url);
         }
       } catch (error) {
         console.log('TabTracker: Could not get opener tab info:', error.message);
@@ -111,6 +145,12 @@ class TabTracker {
     if (!changeInfo.url) return;
     
     console.log('TabTracker: Tab navigated', tabId, changeInfo.url);
+    
+    // Don't track navigation to non-web URLs
+    if (!this.shouldTrackUrl(changeInfo.url)) {
+      console.log('TabTracker: Skipping navigation to non-trackable URL:', changeInfo.url);
+      return;
+    }
     
     const existingTab = await storage.getTab(tabId);
     if (existingTab) {
@@ -160,15 +200,19 @@ class TabTracker {
     console.log('TabTracker: Navigation event', details);
     console.log('TabTracker: sourceTabId:', details.sourceTabId, 'targetTabId:', details.tabId);
     
+    // Don't track navigation to non-web URLs
+    if (!this.shouldTrackUrl(details.url)) {
+      console.log('TabTracker: Skipping navigation to non-trackable URL:', details.url);
+      return;
+    }
+    
     // This fires when a link creates a new tab
     if (details.sourceTabId >= 0 && details.tabId !== details.sourceTabId) {
       
       // Check if this is a web-to-web navigation (not from extension pages)
       try {
         const sourceTab = await chrome.tabs.get(details.sourceTabId);
-        const isValidSource = sourceTab.url && 
-                             !sourceTab.url.includes('chrome-extension://') && 
-                             !sourceTab.url.includes('chrome://');
+        const isValidSource = this.shouldTrackUrl(sourceTab.url);
         
         if (isValidSource) {
           // Store this pending navigation
@@ -197,7 +241,7 @@ class TabTracker {
             await storage.updateTabRelationship(details.tabId, details.sourceTabId);
           }
         } else {
-          console.log('TabTracker: Ignoring navigation from non-web source:', sourceTab.url);
+          console.log('TabTracker: Ignoring navigation from non-trackable source:', sourceTab.url);
         }
       } catch (error) {
         console.log('TabTracker: Could not validate navigation source:', error.message);

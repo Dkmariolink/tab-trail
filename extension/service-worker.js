@@ -26,12 +26,17 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
     const tab = await chrome.tabs.get(activeInfo.tabId);
     console.log('📄 Active tab details:', tab.title, tab.url);
     
-    // Only store as previous if it's a real web page (not extension or chrome pages)
-    const isExtensionPage = tab.url.includes('chrome-extension://');
-    const isChromeUrl = tab.url.startsWith('chrome://');
-    const isEmpty = !tab.title || tab.title.trim() === '';
+    // Only store as previous if it's a trackable web page (exclude exports, downloads, system pages)
+    const isTrackable = tab.url && 
+                       !tab.url.startsWith('blob:') &&
+                       !tab.url.startsWith('data:') &&
+                       !tab.url.includes('chrome-extension://') &&
+                       !tab.url.startsWith('chrome://') &&
+                       !tab.url.startsWith('about:') &&
+                       !tab.url.startsWith('file://') &&
+                       tab.title && tab.title.trim() !== '';
     
-    if (!isExtensionPage && !isChromeUrl && !isEmpty) {
+    if (isTrackable) {
       previousActiveTab = {
         id: tab.id,
         url: tab.url,
@@ -39,12 +44,14 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
       };
       console.log('💾 Stored as previous active tab:', tab.title, 'ID:', tab.id);
     } else {
-      console.log('🚫 Skipping non-web tab:', {
+      console.log('🚫 Skipping non-trackable tab:', {
         title: tab.title,
         url: tab.url,
-        isExtension: isExtensionPage,
-        isChrome: isChromeUrl,
-        isEmpty: isEmpty
+        isBlob: tab.url.startsWith('blob:'),
+        isData: tab.url.startsWith('data:'),
+        isExtension: tab.url.includes('chrome-extension://'),
+        isChrome: tab.url.startsWith('chrome://'),
+        isEmpty: !tab.title || tab.title.trim() === ''
       });
     }
   } catch (error) {
