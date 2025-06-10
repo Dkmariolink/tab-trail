@@ -104,7 +104,9 @@ If you find Tab Trail useful, consider:
 
 - **Issues**: [GitHub Issues](https://github.com/Dkmariolink/tab-trail/issues)
 - **GitHub**: [@Dkmariolink](https://github.com/Dkmariolink)
+- **Twitter**: [@TheDkmariolink](https://x.com/TheDkmariolink)
+- **Email**: Thedkmariolink@gmail.com
 
 ---
 
-Made with 💚 by [Dkmar](https://github.com/Dkmariolink)
+Made with 💚 by [Dkmariolink](https://github.com/Dkmariolink)
