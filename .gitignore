@@ -38,5 +38,6 @@ memory-bank/
 *.md
 !README.md
 !CONTRIBUTING.md
+!PRIVACY.md
 !LICENSE
 
