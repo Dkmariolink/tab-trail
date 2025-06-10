@@ -873,6 +873,186 @@ function truncateText(text, maxLength) {
   return text.substring(0, maxLength) + '...';
 }
 
+// Add comprehensive styles for perfect SVG export with correct white regular tabs
+function addComprehensiveSVGStyles(svgData) {
+  const styles = `
+    <defs>
+      <style type="text/css">
+        <![CDATA[
+          svg { 
+            background-color: #1a1a1a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          }
+          .node circle {
+            fill: #ffffff;
+            stroke: #ffffff;
+            stroke-width: 2px;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+          }
+          .node.current circle {
+            fill: #f1c40f;
+            stroke: #f1c40f;
+            stroke-width: 4px;
+            filter: drop-shadow(0 0 15px #f1c40f);
+          }
+          .node.root-tab circle {
+            fill: #27ae60;
+            stroke: #27ae60;
+            stroke-width: 3px;
+            filter: drop-shadow(0 0 8px #27ae60);
+          }
+          /* Closed tabs are handled by DOM manipulation before export */
+          .node text {
+            fill: #e8e8e8;
+            font-size: 12px;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+          }
+          .node.root-tab text {
+            fill: #27ae60;
+            font-weight: bold;
+          }
+          .link {
+            stroke: #666666;
+            stroke-width: 2px;
+            stroke-opacity: 0.6;
+            fill: none;
+          }
+          .link.parent-child {
+            stroke: #3498db;
+            stroke-width: 3px;
+            stroke-opacity: 0.8;
+          }
+          .link.highlighted {
+            stroke: #f1c40f;
+            stroke-width: 3px;
+            stroke-opacity: 1;
+          }
+          image {
+            pointer-events: none;
+          }
+          /* Ensure all elements are visible */
+          g {
+            opacity: 1;
+          }
+          line {
+            stroke-opacity: 1;
+          }
+          /* Legend styles */
+          .legend {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          }
+          .legend-bg {
+            fill: rgba(255, 255, 255, 0.1);
+            stroke: rgba(255, 255, 255, 0.3);
+            stroke-width: 1;
+            rx: 8;
+          }
+          .legend-title {
+            fill: #ffffff;
+            font-size: 14px;
+            font-weight: bold;
+          }
+          .legend-text {
+            fill: #ffffff;
+            font-size: 12px;
+          }
+        ]]>
+      </style>
+    </defs>
+  `;
+  
+  // Insert styles and ensure proper background
+  return svgData
+    .replace('<svg', `<svg style="background-color: #1a1a1a;"`)
+    .replace(/^(<svg[^>]*>)/, '$1' + styles);
+}
+
+// Add legend to SVG export showing what colors mean
+function addLegendToSVG(svgElement, rect) {
+  // Create legend group positioned in bottom-right corner
+  const legendGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  legendGroup.setAttribute('class', 'legend');
+  
+  // Position legend in bottom-right with some padding - adjusted for smaller legend
+  const legendX = rect.width - 220; 
+  const legendY = rect.height - 120; // Adjusted for smaller legend
+  legendGroup.setAttribute('transform', `translate(${legendX}, ${legendY})`);
+  
+  // Add semi-transparent background - smaller for fewer legend items
+  const legendBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  legendBg.setAttribute('class', 'legend-bg');
+  legendBg.setAttribute('x', '0');
+  legendBg.setAttribute('y', '0');
+  legendBg.setAttribute('width', '200');
+  legendBg.setAttribute('height', '100'); // Reduced height for fewer items
+  legendGroup.appendChild(legendBg);
+  
+  // Add legend title
+  const title = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  title.setAttribute('class', 'legend-title');
+  title.setAttribute('x', '100');
+  title.setAttribute('y', '20');
+  title.setAttribute('text-anchor', 'middle');
+  title.textContent = 'Tab Colors';
+  legendGroup.appendChild(title);
+  
+  // Simplified legend items - focus on key distinctions
+  const legendItems = [
+    { color: '#27ae60', text: 'Root tabs (session start)', y: 40 },
+    { color: '#f1c40f', text: 'Current/active tab', y: 60 },
+    { color: '#3498db', text: 'Tab connections', y: 80, isLine: true }
+  ];
+  
+  // Add each legend item
+  legendItems.forEach(item => {
+    if (item.isLine) {
+      // Add line for connections
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', '10');
+      line.setAttribute('y1', item.y);
+      line.setAttribute('x2', '30');
+      line.setAttribute('y2', item.y);
+      line.setAttribute('stroke', item.color);
+      line.setAttribute('stroke-width', '3');
+      line.setAttribute('stroke-opacity', '0.8');
+      legendGroup.appendChild(line);
+    } else {
+      // Add circle for nodes
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', '20');
+      circle.setAttribute('cy', item.y);
+      circle.setAttribute('r', '8');
+      circle.setAttribute('fill', item.color);
+      
+      // Add white stroke for all circles for visibility, especially white ones
+      circle.setAttribute('stroke', item.color === '#ffffff' ? '#cccccc' : '#ffffff');
+      circle.setAttribute('stroke-width', '2');
+      
+      // Add glow effect for white circles to match visualization
+      if (item.color === '#ffffff') {
+        circle.setAttribute('filter', 'drop-shadow(0 0 4px rgba(255, 255, 255, 0.6))');
+      }
+      
+      legendGroup.appendChild(circle);
+    }
+    
+    // Add text label
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('class', 'legend-text');
+    text.setAttribute('x', '40');
+    text.setAttribute('y', item.y + 4);
+    text.setAttribute('dominant-baseline', 'middle');
+    text.textContent = item.text;
+    legendGroup.appendChild(text);
+  });
+  
+  // Add legend to the SVG
+  svgElement.appendChild(legendGroup);
+}
+
 // Drag behavior
 function drag(simulation) {
   function dragstarted(event, d) {
@@ -1076,110 +1256,295 @@ function setLayout(layout) {
   }, 800);
 }
 
-// Export as PNG image using canvas rendering
+// Export with perfect favicons using SVG format (PNG as fallback)
 function exportSVG() {
   try {
-    // Create canvas with proper dimensions
+    console.log('Starting SVG export with perfect favicons and adaptive sizing...');
+    
+    const svgElement = svg.node();
+    
+    // Clone the SVG to avoid modifying the original
+    const svgClone = svgElement.cloneNode(true);
+    
+    // Get the actual bounds of the visualization content
+    const rect = svgElement.getBoundingClientRect();
+    const nodeElements = svgElement.querySelectorAll('.node');
+    
+    // Calculate content bounds for adaptive sizing
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    nodeElements.forEach(node => {
+      const transform = node.getAttribute('transform');
+      const match = transform?.match(/translate\(([^,]+),([^)]+)\)/);
+      if (match) {
+        const x = parseFloat(match[1]);
+        const y = parseFloat(match[2]);
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
+        minY = Math.min(minY, y);
+        maxY = Math.max(maxY, y);
+      }
+    });
+    
+    // Calculate adaptive size based on content and number of nodes
+    const contentWidth = (maxX - minX) || 400;
+    const contentHeight = (maxY - minY) || 300;
+    const nodeCount = nodeElements.length;
+    
+    // Much more aggressive sizing for visibility
+    const padding = 200; // Space for legend and margins
+    const minSize = 1600; // Much larger minimum
+    const maxSize = 3200; // Much larger maximum
+    
+    // Aggressive scale based on content size and node count
+    const sizeMultiplier = Math.max(2, Math.sqrt(nodeCount / 2)); // Much more aggressive scaling
+    const baseScale = 3; // Base multiplier for visibility
+    
+    const adaptiveWidth = Math.min(maxSize, Math.max(minSize, (contentWidth + padding * 2) * baseScale * sizeMultiplier));
+    const adaptiveHeight = Math.min(maxSize, Math.max(minSize, (contentHeight + padding * 2) * baseScale * sizeMultiplier));
+    
+    console.log('Adaptive export size:', adaptiveWidth, 'x', adaptiveHeight, 'for', nodeCount, 'nodes');
+    console.log('Content bounds:', contentWidth, 'x', contentHeight, 'multiplier:', sizeMultiplier);
+    
+    // Set proper dimensions for large, visible export
+    svgClone.setAttribute('width', adaptiveWidth.toString());
+    svgClone.setAttribute('height', adaptiveHeight.toString());
+    
+    // Use original browser viewport for viewBox to maintain coordinate system
+    svgClone.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
+    svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+    
+    console.log('Export size:', adaptiveWidth, 'x', adaptiveHeight, 'ViewBox: 0 0', rect.width, rect.height);
+    
+    // Add dark background rect as first element
+    const backgroundRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    backgroundRect.setAttribute('width', '100%');
+    backgroundRect.setAttribute('height', '100%');
+    backgroundRect.setAttribute('fill', '#1a1a1a');
+    svgClone.insertBefore(backgroundRect, svgClone.firstChild);
+    
+    // Fix closed tab styling - find and modify circles with history/closed status
+    const circles = svgClone.querySelectorAll('circle');
+    circles.forEach(circle => {
+      const fill = circle.getAttribute('fill');
+      // If this is a closed tab (gray color from getNodeColor), make it darker and remove glow
+      if (fill === '#666' || fill === '#666666') {
+        circle.setAttribute('fill', '#4a4a4a');
+        circle.setAttribute('stroke', '#666666');
+        circle.setAttribute('stroke-width', '1');
+        circle.removeAttribute('filter');
+        circle.style.filter = 'none';
+        console.log('Fixed closed tab styling for circle with fill:', fill);
+      }
+    });
+    
+    // Add legend in the bottom-right corner  
+    addLegendToSVG(svgClone, rect);
+    
+    // Serialize the complete SVG with all elements
+    const svgData = new XMLSerializer().serializeToString(svgClone);
+    const enhancedSVG = addComprehensiveSVGStyles(svgData);
+    
+    console.log('SVG prepared with dark background, legend, and adaptive sizing');
+    
+    // Create SVG file download
+    const svgBlob = new Blob([enhancedSVG], { type: 'image/svg+xml;charset=utf-8' });
+    const svgUrl = URL.createObjectURL(svgBlob);
+    
+    const downloadLink = document.createElement('a');
+    downloadLink.href = svgUrl;
+    downloadLink.download = `tab-trail-${Date.now()}.svg`;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    URL.revokeObjectURL(svgUrl);
+    
+    console.log('SVG export completed with perfect favicons, correct colors, and adaptive sizing!');
+    
+  } catch (error) {
+    console.error('SVG export error:', error);
+    // Fallback to PNG if SVG fails
+    exportPNG();
+  }
+}
+
+// Enhanced PNG export as fallback with domain letters
+function exportPNG() {
+  try {
+    console.log('Starting PNG export with domain letters...');
+    
+    const svgElement = svg.node();
+    const svgRect = svgElement.getBoundingClientRect();
+    
+    // Create larger canvas for better quality
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     
-    // Set high resolution for quality
-    const scale = 2; // 2x for retina quality
-    canvas.width = 1200 * scale;
-    canvas.height = 800 * scale;
+    // Set high-resolution canvas
+    const scale = 2;
+    canvas.width = 1600 * scale;
+    canvas.height = 1200 * scale;
     ctx.scale(scale, scale);
     
     // Dark background
     ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(0, 0, 1200, 800);
+    ctx.fillRect(0, 0, 1600, 1200);
     
-    // Get SVG bounds for centering
-    const svgElement = svg.node();
-    const svgBounds = svgElement.getBBox();
-    const centerX = 600;
-    const centerY = 400;
-    const offsetX = centerX - svgBounds.width / 2;
-    const offsetY = centerY - svgBounds.height / 2;
+    // Clone the SVG and replace favicons with domain letters
+    const svgClone = svgElement.cloneNode(true);
     
-    // Render nodes and links manually to canvas
-    renderToCanvas(ctx, offsetX, offsetY);
+    // Replace external favicon images with domain letters
+    const images = svgClone.querySelectorAll('image');
+    console.log(`Processing ${images.length} favicon images for PNG export...`);
     
-    // Convert to PNG and download
-    canvas.toBlob(function(blob) {
-      const url = URL.createObjectURL(blob);
-      const downloadLink = document.createElement('a');
-      downloadLink.href = url;
-      downloadLink.download = `tab-trail-${Date.now()}.png`;
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-      URL.revokeObjectURL(url);
-    }, 'image/png');
-    
-  } catch (error) {
-    console.warn('PNG export failed, falling back to SVG:', error);
-    exportAsSVG();
-  }
-}
-
-// Render visualization elements to canvas
-function renderToCanvas(ctx, offsetX, offsetY) {
-  // Render links first (so they appear behind nodes)
-  if (links && links.data) {
-    links.data().forEach(link => {
-      if (link.source && link.target && link.source.x !== undefined && link.target.x !== undefined) {
-        ctx.beginPath();
-        ctx.moveTo(link.source.x + offsetX, link.source.y + offsetY);
-        ctx.lineTo(link.target.x + offsetX, link.target.y + offsetY);
-        ctx.strokeStyle = '#4dabf7';
-        ctx.lineWidth = 2;
-        ctx.globalAlpha = 0.8;
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-      }
-    });
-  }
-  
-  // Render nodes
-  if (nodes && nodes.data) {
-    nodes.data().forEach(node => {
-      if (node.x !== undefined && node.y !== undefined) {
-        const x = node.x + offsetX;
-        const y = node.y + offsetY;
-        const radius = 20;
-        
-        // Determine node color based on type
-        let fillColor = '#4dabf7'; // default blue
-        if (node.current) fillColor = '#ffd700'; // yellow for current
-        else if (node.isRoot) fillColor = '#51cf66'; // green for root
-        
-        // Draw circle
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, 2 * Math.PI);
-        ctx.fillStyle = fillColor;
-        ctx.fill();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        
-        // Draw text label if it exists and labels are shown
-        if (showLabels && node.title) {
-          ctx.fillStyle = '#ffffff';
-          ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
+    images.forEach((img, index) => {
+      const parent = img.parentNode;
+      const href = img.getAttribute('xlink:href') || img.getAttribute('href');
+      
+      if (href && href.includes('favicon')) {
+        const match = href.match(/domain=([^&]+)/);
+        if (match) {
+          const domain = decodeURIComponent(match[1]);
+          const letter = domain.charAt(0).toUpperCase();
           
-          // Truncate long titles
-          let title = node.title;
-          if (title.length > 15) {
-            title = title.substring(0, 12) + '...';
-          }
+          img.remove();
           
-          ctx.fillText(title, x, y + radius + 15);
+          // Create circle + letter for PNG
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('cx', '0');
+          circle.setAttribute('cy', '0');
+          circle.setAttribute('r', '12');
+          circle.setAttribute('fill', '#4dabf7');
+          circle.setAttribute('stroke', '#ffffff');
+          circle.setAttribute('stroke-width', '2');
+          
+          const textElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          textElement.setAttribute('x', '0');
+          textElement.setAttribute('y', '0');
+          textElement.setAttribute('text-anchor', 'middle');
+          textElement.setAttribute('dominant-baseline', 'central');
+          textElement.setAttribute('fill', '#ffffff');
+          textElement.setAttribute('font-size', '12');
+          textElement.setAttribute('font-weight', 'bold');
+          textElement.textContent = letter;
+          
+          parent.appendChild(circle);
+          parent.appendChild(textElement);
         }
       }
     });
+    
+    // Continue with PNG creation...
+    const padding = 50;
+    const exportWidth = 1600 - (padding * 2);
+    const exportHeight = 1200 - (padding * 2);
+    
+    svgClone.setAttribute('width', exportWidth.toString());
+    svgClone.setAttribute('height', exportHeight.toString());
+    svgClone.setAttribute('viewBox', `0 0 ${svgRect.width} ${svgRect.height}`);
+    svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    
+    const svgData = new XMLSerializer().serializeToString(svgClone);
+    const enhancedSVG = addSVGStyles(svgData);
+    
+    const svgBlob = new Blob([enhancedSVG], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+    
+    const img = new Image();
+    img.onload = function() {
+      ctx.drawImage(img, padding, padding, exportWidth, exportHeight);
+      
+      canvas.toBlob(function(blob) {
+        const downloadUrl = URL.createObjectURL(blob);
+        const downloadLink = document.createElement('a');
+        downloadLink.href = downloadUrl;
+        downloadLink.download = `tab-trail-${Date.now()}.png`;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        
+        URL.revokeObjectURL(downloadUrl);
+        URL.revokeObjectURL(url);
+        
+        console.log('PNG export completed with domain letters!');
+      }, 'image/png');
+    };
+    
+    img.src = url;
+    
+  } catch (error) {
+    console.error('PNG export failed:', error);
   }
+}
+
+// Fallback SVG export with enhanced styling
+function exportAsSVG() {
+  const svgElement = svg.node();
+  const svgData = new XMLSerializer().serializeToString(svgElement);
+  const enhancedSVG = addSVGStyles(svgData);
+  
+  const svgBlob = new Blob([enhancedSVG], { type: 'image/svg+xml;charset=utf-8' });
+  const svgUrl = URL.createObjectURL(svgBlob);
+  
+  const downloadLink = document.createElement('a');
+  downloadLink.href = svgUrl;
+  downloadLink.download = `tab-trail-${Date.now()}.svg`;
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+  URL.revokeObjectURL(svgUrl);
+}
+
+// Add comprehensive styles to SVG
+function addSVGStyles(svgData) {
+  const styles = `
+    <defs>
+      <style type="text/css">
+        <![CDATA[
+          svg { background-color: #1a1a1a; }
+          .node circle {
+            fill: #4dabf7;
+            stroke: #ffffff;
+            stroke-width: 2px;
+          }
+          .node.current circle {
+            fill: #ffd700;
+            stroke: #ffffff;
+            stroke-width: 3px;
+          }
+          .node.root-tab circle {
+            fill: #51cf66;
+            stroke: #ffffff;
+            stroke-width: 2px;
+          }
+          .node text {
+            fill: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 12px;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+          }
+          .link {
+            stroke: #4dabf7;
+            stroke-width: 2px;
+            stroke-opacity: 0.8;
+            fill: none;
+          }
+          .link.highlighted {
+            stroke: #ffd700;
+            stroke-width: 3px;
+            stroke-opacity: 1;
+          }
+        ]]>
+      </style>
+    </defs>
+  `;
+  
+  // Insert styles after opening SVG tag and add dark background
+  return svgData
+    .replace('<svg', `<svg style="background-color: #1a1a1a;"`)
+    .replace('>', '>' + styles);
 }
 
 // Fallback SVG export with enhanced styling
