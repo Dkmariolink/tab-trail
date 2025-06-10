@@ -75,6 +75,8 @@ No build process required! The extension runs directly from source.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+See full contributing guide [HERE](CONTRIBUTING.md)
+
 ## 🔐 Privacy Policy
 
 Tab Trail is committed to your privacy:
@@ -82,6 +84,8 @@ Tab Trail is committed to your privacy:
 - **Local storage only** - All data stays on your device
 - **No analytics** - No tracking or telemetry
 - **Open source** - Verify our privacy claims in the code
+
+Full privacy policy [HERE](PRIVACY.md)
 
 ## 📝 License
 
@@ -98,13 +102,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 If you find Tab Trail useful, consider:
 - ⭐ Starring this repository
 - 🐛 Reporting bugs and suggesting features
-- ☕ [Buying me a coffee](https://www.buymeacoffee.com/tabtrail)
+- ☕ [Buying me a coffee](https://www.buymeacoffee.com/dkmariolink)
 
 ## 📧 Contact
 
 - **Issues**: [GitHub Issues](https://github.com/Dkmariolink/tab-trail/issues)
 - **GitHub**: [@Dkmariolink](https://github.com/Dkmariolink)
+- **Twitter**: [@TheDkmariolink](https://x.com/TheDkmariolink)
+- **Email**: Thedkmariolink@gmail.com
 
 ---
 
-Made with 💚 by [Dkmar](https://github.com/Dkmariolink)
+Made with 💚 by [Dkmariolink](https://github.com/Dkmariolink)
