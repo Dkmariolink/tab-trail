@@ -98,7 +98,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 If you find Tab Trail useful, consider:
 - ⭐ Starring this repository
 - 🐛 Reporting bugs and suggesting features
-- ☕ [Buying me a coffee](https://www.buymeacoffee.com/tabtrail)
+- ☕ [Buying me a coffee](https://www.buymeacoffee.com/dkmariolink)
 
 ## 📧 Contact
 
