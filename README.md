@@ -14,8 +14,7 @@ A Chrome extension that tracks and visualizes how you navigate between tabs. Nev
 
 ## 🚀 Installation
 
-### From Chrome Web Store (Coming Soon)
-[Tab Trail](https://chromewebstore.google.com/detail/tab-trail/ddbccnbkoaomghihccgbicjbacflfodk?authuser=0&hl=en)
+### From Chrome Web Store [HERE](https://chromewebstore.google.com/detail/tab-trail/ddbccnbkoaomghihccgbicjbacflfodk?authuser=0&hl=en)
 
 ### From Source
 1. Clone this repository:
